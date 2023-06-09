@@ -61,6 +61,27 @@ async function run() {
             res.send({token})
         })
 
+        // Verify Admin 
+        const verifyAdmin = async (req, res, next) =>{
+            const email = req.decoded.email;
+            const query = {email: email} 
+            const user = await userCollection.findOne(query)
+            if(user?.role !== "admin"){
+                return res.status(403).send({error: true, message: "forbidden access"})
+            };
+            next();
+        }
+        // Verify Admin 
+        const verifyInstructor = async (req, res, next) =>{
+            const email = req.decoded.email;
+            const query = {email: email} 
+            const user = await userCollection.findOne(query)
+            if(user?.role !== "instructor"){
+                return res.status(403).send({error: true, message: "forbidden access"})
+            };
+            next();
+        }
+
         // User API 
 
         app.get("/users", async (req, res) => {
@@ -79,15 +100,27 @@ async function run() {
              const result = await userCollection.updateOne(query, updateUser)
              res.send(result)
         });
-        
-        app.get("/users/admin/:email",verifyJWT, async (req, res) =>{
+        // Is Admin Route 
+        app.patch("/users/admin/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const updateUser = {
+                $set:{
+                    role:"admin"
+                }
+             };
+             const result = await userCollection.updateOne(query, updateUser)
+             res.send(result)
+        });
+        //  Is Instructor Route 
+        app.get("/users/instructor/:email",verifyJWT, async (req, res) =>{
             const email = req.params.email;
             if(email === req.decoded.email){
                 return res.send({admin: false})
             }
             const query = {email: email}
             const user = await userCollection.findOne(query)
-            const result = {admin : user?.role === "admin"}
+            const result = {admin : user?.role === "instructor"}
             res.send(result)
         });
 
