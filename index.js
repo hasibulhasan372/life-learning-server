@@ -157,7 +157,8 @@ async function run() {
             res.send(result)
         })
 
-        //  Classes API    
+        //  Classes API  
+        // Only for Admin and Instructor   
         app.get("/courses", async(req, res) =>{
             let query = {};
             if (req.query?.instructorEmail) {
@@ -165,7 +166,25 @@ async function run() {
             }
             const result = await courseCollection.find(query).toArray();
             res.send(result)
+        });
+
+        // For All 
+        app.get("/coursesForAll", async(req, res) =>{
+            const result = await courseCollection.find({ status: "approved"}).toArray();
+            res.send(result)
+
         })
+        // One Instructor courses  
+        app.get("/coursesInstructorApproved", async(req, res) =>{
+            let query = {};
+            if (req.query?.instructorEmail) {
+                query = { instructorEmail: req.query.instructorEmail }
+            }
+            const result = await courseCollection.find(query&&{ status: "approved"}).toArray();
+            res.send(result)
+
+        })
+
         app.patch("/courses/approved/:id", async(req, res) =>{
             const id = req.params.id;
             const query = {_id : new ObjectId(id)};
