@@ -177,6 +177,17 @@ async function run() {
             const result = await courseCollection.updateOne(query, updateCourse)
             res.send(result)
         })
+        app.patch("/courses/deny/:id", async(req, res) =>{
+            const id = req.params.id;
+            const query = {_id : new ObjectId(id)};
+            const updateCourse = {
+                $set:{
+                    status: "denied"
+                }
+            }
+            const result = await courseCollection.updateOne(query, updateCourse)
+            res.send(result)
+        })
 
         
         app.post("/courses",  async(req, res) =>{
