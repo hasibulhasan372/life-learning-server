@@ -53,6 +53,7 @@ async function run() {
         await client.connect();
 
         const userCollection = client.db("lifeLearningDB").collection("users");
+        const classCollection = client.db("lifeLearningDB").collection("classes");
 
         // JWT 
         app.post("/jwt", (req, res) =>{
@@ -153,6 +154,13 @@ async function run() {
             const id = req.params.id;
             const query = {_id : new ObjectId(id)}
             const result = await userCollection.deleteOne(query);
+            res.send(result)
+        })
+
+        //  Classes API                                            
+        app.post("/classes", async(req, res) =>{
+            const AddClass = req.body;
+            const result  = await classCollection.insertOne(AddClass)
             res.send(result)
         })
 
