@@ -54,6 +54,7 @@ async function run() {
 
         const userCollection = client.db("lifeLearningDB").collection("users");
         const courseCollection = client.db("lifeLearningDB").collection("courses");
+        const selectedCourseCollection = client.db("lifeLearningDB").collection("selectedCourses");
 
         // JWT 
         app.post("/jwt", (req, res) =>{
@@ -214,6 +215,24 @@ async function run() {
             const result  = await courseCollection.insertOne(course)
             res.send(result)
         });
+
+        // Courses Selected by Student 
+        app.get("/selectedCourses", async(req, res) =>{
+            const email = req.query.email;
+            if(!email){
+                res.send([])
+            }
+            const query = {email: email};
+            const result = await selectedCourseCollection.find(query).toArray();
+            res.send(result)
+
+        })
+
+        app.post("/selectedCourses", async(req,res) =>{
+            const course = req.body;
+            const result = await selectedCourseCollection.insertOne( course)
+            res.send(result)
+        })
 
 
 
