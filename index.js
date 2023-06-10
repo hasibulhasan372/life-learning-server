@@ -53,7 +53,7 @@ async function run() {
         await client.connect();
 
         const userCollection = client.db("lifeLearningDB").collection("users");
-        const classCollection = client.db("lifeLearningDB").collection("classes");
+        const courseCollection = client.db("lifeLearningDB").collection("courses");
 
         // JWT 
         app.post("/jwt", (req, res) =>{
@@ -114,7 +114,7 @@ async function run() {
              res.send(result)
         });
         //  Is Instructor Route 
-        app.get("/users/instructor/:email",verifyJWT, async (req, res) =>{
+        app.get("/users/instructor/:email", async (req, res) =>{
             const email = req.params.email;
             if(email === req.decoded.email){
                 return res.send({admin: false})
@@ -157,12 +157,33 @@ async function run() {
             res.send(result)
         })
 
-        //  Classes API                                            
-        app.post("/classes", async(req, res) =>{
-            const AddClass = req.body;
-            const result  = await classCollection.insertOne(AddClass)
+        //  Classes API    
+        app.get("/courses", async(req, res) =>{
+            let query = {};
+            if (req.query?.instructorEmail) {
+                query = { instructorEmail: req.query.instructorEmail }
+            }
+            const result = await courseCollection.find(query).toArray();
             res.send(result)
         })
+        app.patch("/courses/approved/:id", async(req, res) =>{
+            const id = req.params.id;
+            const query = {_id : new ObjectId(id)};
+            const updateCourse = {
+                $set:{
+                    status: "approved"
+                }
+            }
+            const result = await courseCollection.updateOne(query, updateCourse)
+            res.send(result)
+        })
+
+        
+        app.post("/courses",  async(req, res) =>{
+            const course = req.body;
+            const result  = await courseCollection.insertOne(course)
+            res.send(result)
+        });
 
 
 
