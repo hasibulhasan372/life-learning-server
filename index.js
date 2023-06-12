@@ -174,8 +174,11 @@ async function run() {
         app.get("/coursesForAll", async(req, res) =>{
             const result = await courseCollection.find({ status: "approved"}).toArray();
             res.send(result)
-
-        })
+        });
+        app.get("/popularCourses", async(req, res) =>{
+            const result = await courseCollection.find({ status: "approved"}).sort({enrolled: -1}).limit(6).toArray();
+            res.send(result)
+        });
         // One Instructor courses  
         app.get("/coursesInstructorApproved", async(req, res) =>{
             let query = {};
