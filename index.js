@@ -126,6 +126,18 @@ async function run() {
             const result = {admin : user?.role === "instructor"}
             res.send(result)
         });
+        // Popular Instructor 
+        app.get("/instructors", async(req, res) =>{
+            const result = await userCollection.find({ role: "instructor"}).toArray();
+            console.log(result)
+            res.send(result)
+        });
+        // Popular Instructor 
+        app.get("/popularInstructors", async(req, res) =>{
+            const result = await userCollection.find({ role: "instructor"}).limit(6).toArray();
+            console.log(result)
+            res.send(result)
+        });
 
 
 
@@ -220,6 +232,13 @@ async function run() {
             res.send(result)
         });
 
+        app.delete("/courses/:id", async(req, res) =>{
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)} 
+            const result = await courseCollection.deleteOne(query)
+            res.send(result);
+        })
+
         // Courses Selected by Student 
         app.get("/selectedCourses", async(req, res) =>{
             const email = req.query.email;
@@ -228,8 +247,7 @@ async function run() {
             }
             const query = {email: email};
             const result = await selectedCourseCollection.find(query).toArray();
-            res.send(result)
-
+            res.send(result);
         })
 
         app.post("/selectedCourses", async(req,res) =>{
@@ -254,12 +272,6 @@ async function run() {
             });
 
         });
-
-
-
-
-
-
 
 
 
