@@ -51,7 +51,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
         const userCollection = client.db("lifeLearningDB").collection("users");
         const courseCollection = client.db("lifeLearningDB").collection("courses");
@@ -269,8 +269,6 @@ async function run() {
             const result = await selectedCourseCollection.deleteOne(query);
             res.send(result)
         })
-
-
         // Payment API 
 
         app.post("/create-payment-intent", verifyJWT, async (req, res) => {
@@ -323,14 +321,6 @@ async function run() {
             const result = await courseCollection.updateOne(query, updateCourse)
             res.send(result)
         })
-
-
-
-
-
-
-
-
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
