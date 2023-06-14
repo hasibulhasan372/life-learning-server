@@ -87,14 +87,13 @@ async function run() {
         }
 
         // User API 
-
         app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
             const result = await userCollection.find().toArray();
             res.send(result)
         });
 
         // Admin Role Update Route
-        app.patch("/users/admin/:id", async (req, res) => {
+        app.patch("/users/admin/:id",verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const updateUser = {
@@ -106,7 +105,7 @@ async function run() {
             res.send(result)
         });
         // Instructor Role Update Route
-        app.patch("/users/instructor/:id", async (req, res) => {
+        app.patch("/users/instructor/:id",verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const updateUser = {
@@ -151,9 +150,7 @@ async function run() {
             const result = await userCollection.find({ role: "instructor" }).limit(6).toArray();
             res.send(result)
         });
-
-
-
+        // Post User 
         app.post("/users", async (req, res) => {
             const user = req.body;
             const query = { email: user.email }
@@ -164,14 +161,15 @@ async function run() {
             const result = await userCollection.insertOne(user);
             res.send(result)
         });
-        app.delete("/users/:id", async (req, res) => {
+
+        app.delete("/users/:id",verifyJWT,verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await userCollection.deleteOne(query);
             res.send(result)
         })
 
-        //  Classes API  
+        //  Courses API  
         // Only for Admin and Instructor   
         app.get("/courses", verifyJWT, async (req, res) => {
             const result = await courseCollection.find().toArray();
@@ -206,8 +204,8 @@ async function run() {
             res.send(result)
 
         })
-
-        app.patch("/courses/approved/:id",verifyJWT, verifyAdmin, async (req, res) => {
+        // Status Approved 
+        app.patch("/courses/approved/:id", verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const updateCourse = {
@@ -218,7 +216,8 @@ async function run() {
             const result = await courseCollection.updateOne(query, updateCourse)
             res.send(result)
         })
-        app.patch("/courses/deny/:id",verifyJWT,verifyAdmin, async (req, res) => {
+        // Status Deny
+        app.patch("/courses/deny/:id", verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const updateCourse = {
@@ -230,14 +229,14 @@ async function run() {
             res.send(result)
         })
 
-
-        app.post("/courses",verifyJWT,verifyInstructor, async (req, res) => {
+        // Post Courses By Instructor  
+        app.post("/courses", verifyJWT, verifyInstructor, async (req, res) => {
             const course = req.body;
             const result = await courseCollection.insertOne(course)
             res.send(result)
         });
 
-        app.delete("/courses/:id",verifyJWT, verifyInstructor, async (req, res) => {
+        app.delete("/courses/:id", verifyJWT, verifyInstructor, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await courseCollection.deleteOne(query)
@@ -245,14 +244,14 @@ async function run() {
         })
 
         // Courses Selected by Student 
-        app.get("/selectedCourses",verifyJWT, async (req, res) => {
+        app.get("/selectedCourses", verifyJWT, async (req, res) => {
             const email = req.query.email;
             if (!email) {
                 res.send([])
             }
             const decodedEmail = req.decoded.email;
             if (email !== decodedEmail) {
-              return res.status(403).send({ error: true, message: "forbidden access" })
+                return res.status(403).send({ error: true, message: "forbidden access" })
             }
             const query = { email: email };
             const result = await selectedCourseCollection.find(query).toArray();
@@ -264,9 +263,9 @@ async function run() {
             const result = await selectedCourseCollection.insertOne(course)
             res.send(result)
         })
-        app.delete("/selectedCourses/:id", async(req,res) =>{
+        app.delete("/selectedCourses/:id", async (req, res) => {
             const id = req.params.id;
-            const query = {_id : new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
             const result = await selectedCourseCollection.deleteOne(query);
             res.send(result)
         })
@@ -289,11 +288,41 @@ async function run() {
         });
 
         // Payment Information 
-         app.post("/payment",verifyJWT, async(req,res) =>{
-                const paymentInfo = req.body;
-                const result = await paymentCourseCollection.insertOne(paymentInfo);
-                res.send(result)
-         })
+
+        app.get("/enrolledCourses", verifyJWT, async (req, res) => {
+            const email = req.query.email;
+            if (!email) {
+                res.send([])
+            }
+            const decodedEmail = req.decoded.email;
+            if (email !== decodedEmail) {
+                return res.status(403).send({ error: true, message: "forbidden access" })
+            }
+            const query = { email: email };
+            const result = await paymentCourseCollection.find(query).sort({date: -1}).toArray();
+            res.send(result);
+        })
+
+        app.post("/payment", verifyJWT, async (req, res) => {
+            const paymentInfo = req.body;
+            const insertedResult = await paymentCourseCollection.insertOne(paymentInfo);
+            
+            res.send(insertedResult)
+        })
+        
+        // Course Enrollment
+        app.patch("/courses/enrolled/:id", verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const updateCourse = {
+                $inc: {
+                    enrolled: 1,
+                    seats: -1,
+                }
+            }
+            const result = await courseCollection.updateOne(query, updateCourse)
+            res.send(result)
+        })
 
 
 
